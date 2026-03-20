@@ -14,7 +14,7 @@ public class Main {
         }
         String userName = args[0];
         String apiUrl = "https://api.github.com/users/" + userName + "/events";
-        System.out.println("API URL: " + apiUrl);
+        System.out.println("github-user-activity of " + userName);
 
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -28,9 +28,31 @@ public class Main {
                 builder.append(line);
             }
             reader.close();
-            System.out.println(builder.toString());
-        } else {
-            System.out.println("Failed to fetch data. ResponseCode : " + responseCode);
+
+            String json =  builder.toString();
+            String[] events = json.split("},\\{");
+
+            for(String event : events) {
+
+                int start = event.indexOf("\"name\":\"") + 8;
+                if(start <= 0) continue;
+                int end = event.indexOf("\"", start);
+                if(end <= 0) continue;
+                String repoName = event.substring(start, end);
+
+                if(event.contains("PushEvent")) {
+                    System.out.println("- Pushed to " + repoName);
+                } else if(event.contains("CreateEvent")) {
+                    System.out.println("- Created repository " + repoName);
+                } else if(event.contains("WatchEvent")) {
+                    System.out.println("- Starred " + repoName);
+                } else {
+                    System.out.println("no matching event");
+                }
+            }
+
+        } else if (responseCode == 404) {
+                System.out.println("User not found");
         }
     }
 }
