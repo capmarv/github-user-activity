@@ -47,7 +47,6 @@ Github-User-Activity of capmarv
 * Supports multiple event types (Push, Create, Watch, Delete)
 * Handles unknown events
 * Handles invalid usernames
-* Reference : https://roadmap.sh/projects/github-user-activity
 
 # Limitations
 
