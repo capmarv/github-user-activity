@@ -14,13 +14,13 @@ public class Main {
         }
         String userName = args[0];
         String apiUrl = "https://api.github.com/users/" + userName + "/events";
-        System.out.println("github-user-activity of " + userName);
 
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         int responseCode = connection.getResponseCode();
         if(responseCode == 200) {
+            System.out.println("Github-User-Activity of " + userName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String line;
             StringBuilder builder = new StringBuilder();
@@ -32,12 +32,18 @@ public class Main {
             String json =  builder.toString();
             String[] events = json.split("},\\{");
 
-            for(String event : events) {
+            int count = 0;
 
-                int start = event.indexOf("\"name\":\"") + 8;
-                if(start <= 0) continue;
+            for(String event : events) {
+                if(count == 10) break;
+                count++;
+                int startIndex = event.indexOf("\"name\":\"");
+                if (startIndex == -1) continue;
+
+                int start = startIndex + 8;
                 int end = event.indexOf("\"", start);
-                if(end <= 0) continue;
+                if (end == -1) continue;
+
                 String repoName = event.substring(start, end);
 
                 if(event.contains("PushEvent")) {
@@ -46,13 +52,18 @@ public class Main {
                     System.out.println("- Created repository " + repoName);
                 } else if(event.contains("WatchEvent")) {
                     System.out.println("- Starred " + repoName);
+                } else if(event.contains("DeleteEvent")) {
+                    System.out.println("- Deleted repository " + repoName);
                 } else {
-                    System.out.println("no matching event");
+                    int typeStart = event.indexOf("\"type\":\"") + 8;
+                    int typeEnd = event.indexOf("\"", typeStart);
+                    String type = event.substring(typeStart, typeEnd);
+
+                    System.out.println("- " + type.replace("Event", "") + " on " + repoName);
                 }
             }
-
         } else if (responseCode == 404) {
-                System.out.println("User not found");
+                System.out.println("User not found : " +  userName);
         }
     }
 }
